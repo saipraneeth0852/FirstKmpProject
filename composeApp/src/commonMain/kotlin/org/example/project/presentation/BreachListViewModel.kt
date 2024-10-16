@@ -41,7 +41,7 @@ class BreachListViewModel(private val getBreachesUseCase: GetBreachesUseCase) : 
                 if (newBreaches.isEmpty()) {
                     isLastPage = true
                 } else {
-                    _breaches.value = _breaches.value + newBreaches
+                    _breaches.value += newBreaches
                     currentPage++
                 }
             } catch (e: Exception) {

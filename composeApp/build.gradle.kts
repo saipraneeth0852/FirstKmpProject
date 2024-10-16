@@ -35,7 +35,7 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
 
-
+            implementation(libs.coil.compose)
 
             implementation(libs.ktor.client.android)
         }
@@ -56,7 +56,9 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
 
+            implementation(libs.coil)
 
+            implementation(libs.kamel.image)
 
             implementation(libs.coil.compose)
 

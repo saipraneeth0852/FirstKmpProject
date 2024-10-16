@@ -12,10 +12,13 @@ androidx-espresso-core = "3.6.1"
 androidx-lifecycle = "2.8.2"
 androidx-material = "1.12.0"
 androidx-test-junit = "1.2.1"
+coil = "2.4.0"
 coilCompose = "2.2.2"
+coilComposeVersion = "2.1.0"
 compose-plugin = "1.6.11"
 jetbrainsKotlinxSerializationJson = "1.2.1"
 junit = "4.13.2"
+kamelImage = "0.7.3"
 kotlin = "2.0.20"
 kotlinxCoroutinesCore = "1.6.4"
 kotlinxSerializationJson = "1.5.1"
@@ -25,8 +28,11 @@ retrofit = "2.9.0"
 
 [libraries]
 accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
+coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+coil-compose-v210 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+kamel-image = { module = "media.kamel:kamel-image", version.ref = "kamelImage" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
