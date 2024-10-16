@@ -20,34 +20,45 @@ class BreachListViewModel(private val getBreachesUseCase: GetBreachesUseCase) : 
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
-    private var currentPage = 0
-    private val pageSize = 20
-    private var isLastPage = false
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    private var allBreaches: List<Breach> = emptyList()
 
     fun loadBreaches() {
-        if (_isLoading.value || isLastPage) return
+        if (_isLoading.value) return
 
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
 
             try {
-                val newBreaches = withContext(Dispatchers.Default) {
+                allBreaches = withContext(Dispatchers.Default) {
                     getBreachesUseCase().getOrThrow()
-                        .drop(currentPage * pageSize)
-                        .take(pageSize)
                 }
-
-                if (newBreaches.isEmpty()) {
-                    isLastPage = true
-                } else {
-                    _breaches.value += newBreaches
-                    currentPage++
-                }
+                filterBreaches()
             } catch (e: Exception) {
                 _error.value = e.message ?: "An unknown error occurred"
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+        filterBreaches()
+    }
+
+    private fun filterBreaches() {
+        val query = _searchQuery.value.lowercase()
+        _breaches.value = if (query.isEmpty()) {
+            allBreaches
+        } else {
+            allBreaches.filter { breach ->
+                breach.name.lowercase().contains(query) ||
+                        breach.title.lowercase().contains(query) ||
+                        breach.domain.lowercase().contains(query)
             }
         }
     }

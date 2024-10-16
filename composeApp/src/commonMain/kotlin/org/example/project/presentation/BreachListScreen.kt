@@ -6,10 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.kamel.image.KamelImage
@@ -28,15 +32,16 @@ import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import org.example.project.domain.Breach
 
-
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun BreachListScreen(viewModel: BreachListViewModel) {
     val breaches by viewModel.breaches.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
     var selectedBreach by remember { mutableStateOf<Breach?>(null) }
     var showInitialLoading by remember { mutableStateOf(true) }
+    var isSearchVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
         viewModel.loadBreaches()
@@ -64,7 +69,12 @@ fun BreachListScreen(viewModel: BreachListViewModel) {
                 )
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Header()
+                Header(
+                    isSearchVisible = isSearchVisible,
+                    onSearchClick = { isSearchVisible = !isSearchVisible },
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { viewModel.setSearchQuery(it) }
+                )
                 AnimatedVisibility(
                     visible = showInitialLoading,
                     enter = fadeIn() + expandVertically(),
@@ -79,21 +89,14 @@ fun BreachListScreen(viewModel: BreachListViewModel) {
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         LazyColumn {
-                            itemsIndexed(
+                            items(
                                 items = breaches,
-                                key = { _, breach -> breach.name }
-                            ) { index, breach ->
+                                key = { breach -> breach.name }
+                            ) { breach ->
                                 FloatingBreachItem(
                                     breach = breach,
-                                    onClick = { selectedBreach = breach },
-                                    index = index
+                                    onClick = { selectedBreach = breach }
                                 )
-
-                                if (index == breaches.size - 1 && !isLoading) {
-                                    LaunchedEffect(key1 = Unit) {
-                                        viewModel.loadBreaches()
-                                    }
-                                }
                             }
 
                             item {
@@ -131,25 +134,64 @@ fun BreachListScreen(viewModel: BreachListViewModel) {
 }
 
 @Composable
-fun Header() {
+fun Header(
+    isSearchVisible: Boolean,
+    onSearchClick: () -> Unit,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF1A237E))
             .padding(16.dp)
     ) {
-        Text(
-            text = "Data Breach Tracker",
-            style = MaterialTheme.typography.h5,
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.Center)
-        )
+        if (isSearchVisible) {
+            TextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, RoundedCornerShape(8.dp)),
+                placeholder = { Text("Search breaches...") },
+                singleLine = true,
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.Transparent,
+                    cursorColor = Color(0xFF3F51B5),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = { /* Perform search */ }
+                )
+            )
+        } else {
+            Text(
+                text = "Data Breach Tracker",
+                style = MaterialTheme.typography.h5,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+        IconButton(
+            onClick = onSearchClick,
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search",
+                tint = Color.White
+            )
+        }
     }
 }
 
 @Composable
-fun FloatingBreachItem(breach: Breach, onClick: () -> Unit, index: Int) {
+fun FloatingBreachItem(breach: Breach, onClick: () -> Unit) {
     val offsetY by rememberInfiniteTransition().animateFloat(
         initialValue = 0f,
         targetValue = 10f,
