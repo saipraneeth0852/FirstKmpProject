@@ -32,13 +32,13 @@ import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import org.example.project.domain.Breach
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun BreachListScreen(viewModel: BreachListViewModel) {
     val breaches by viewModel.breaches.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
     var selectedBreach by remember { mutableStateOf<Breach?>(null) }
     var showInitialLoading by remember { mutableStateOf(true) }
     var isSearchVisible by remember { mutableStateOf(false) }
@@ -74,6 +74,10 @@ fun BreachListScreen(viewModel: BreachListViewModel) {
                     onSearchClick = { isSearchVisible = !isSearchVisible },
                     searchQuery = searchQuery,
                     onSearchQueryChange = { viewModel.setSearchQuery(it) }
+                )
+                FilterOptions(
+                    currentFilter = filterState,
+                    onFilterSelected = { viewModel.setFilterState(it) }
                 )
                 AnimatedVisibility(
                     visible = showInitialLoading,
@@ -130,6 +134,63 @@ fun BreachListScreen(viewModel: BreachListViewModel) {
             breach = breach,
             onDismiss = { selectedBreach = null }
         )
+    }
+}
+
+@Composable
+fun FilterOptions(
+    currentFilter: BreachListViewModel.FilterState,
+    onFilterSelected: (BreachListViewModel.FilterState) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF1A237E))
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        FilterChip(
+            selected = currentFilter == BreachListViewModel.FilterState.ALL,
+            onClick = { onFilterSelected(BreachListViewModel.FilterState.ALL) },
+            label = { Text("All") }
+        )
+        FilterChip(
+            selected = currentFilter == BreachListViewModel.FilterState.VERIFIED,
+            onClick = { onFilterSelected(BreachListViewModel.FilterState.VERIFIED) },
+            label = { Text("Verified") }
+        )
+        FilterChip(
+            selected = currentFilter == BreachListViewModel.FilterState.NOT_VERIFIED,
+            onClick = { onFilterSelected(BreachListViewModel.FilterState.NOT_VERIFIED) },
+            label = { Text("Not Verified") }
+        )
+    }
+}
+
+@Composable
+fun FilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: @Composable () -> Unit
+) {
+    Surface(
+        modifier = Modifier.padding(4.dp),
+        elevation = 8.dp,
+        shape = RoundedCornerShape(16.dp),
+        color = if (selected) Color(0xFFFF4081) else Color.White
+    ) {
+        Box(
+            modifier = Modifier
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CompositionLocalProvider(
+                LocalContentColor provides if (selected) Color.White else Color(0xFF1A237E)
+            ) {
+                label()
+            }
+        }
     }
 }
 

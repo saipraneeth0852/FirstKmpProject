@@ -25,6 +25,37 @@ class BreachListViewModel(private val getBreachesUseCase: GetBreachesUseCase) : 
 
     private var allBreaches: List<Breach> = emptyList()
 
+    private val _filterState = MutableStateFlow(FilterState.ALL)
+    val filterState = _filterState.asStateFlow()
+
+    enum class FilterState {
+        ALL, VERIFIED, NOT_VERIFIED
+    }
+
+    fun setFilterState(state: FilterState) {
+        _filterState.value = state
+        filterBreaches()
+    }
+
+    private fun filterBreaches() {
+        val query = _searchQuery.value.lowercase()
+        val filteredBySearch = if (query.isEmpty()) {
+            allBreaches
+        } else {
+            allBreaches.filter { breach ->
+                breach.name.lowercase().contains(query) ||
+                        breach.title.lowercase().contains(query) ||
+                        breach.domain.lowercase().contains(query)
+            }
+        }
+
+        _breaches.value = when (_filterState.value) {
+            FilterState.ALL -> filteredBySearch
+            FilterState.VERIFIED -> filteredBySearch.filter { it.isVerified }
+            FilterState.NOT_VERIFIED -> filteredBySearch.filter { !it.isVerified }
+        }
+    }
+
     fun loadBreaches() {
         if (_isLoading.value) return
 
@@ -50,18 +81,18 @@ class BreachListViewModel(private val getBreachesUseCase: GetBreachesUseCase) : 
         filterBreaches()
     }
 
-    private fun filterBreaches() {
-        val query = _searchQuery.value.lowercase()
-        _breaches.value = if (query.isEmpty()) {
-            allBreaches
-        } else {
-            allBreaches.filter { breach ->
-                breach.name.lowercase().contains(query) ||
-                        breach.title.lowercase().contains(query) ||
-                        breach.domain.lowercase().contains(query)
-            }
-        }
-    }
+//    private fun filterBreaches() {
+//        val query = _searchQuery.value.lowercase()
+//        _breaches.value = if (query.isEmpty()) {
+//            allBreaches
+//        } else {
+//            allBreaches.filter { breach ->
+//                breach.name.lowercase().contains(query) ||
+//                        breach.title.lowercase().contains(query) ||
+//                        breach.domain.lowercase().contains(query)
+//            }
+//        }
+//    }
 
     fun retryLoading() {
         _error.value = null
